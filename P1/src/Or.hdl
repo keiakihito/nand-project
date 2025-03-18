@@ -1,0 +1,20 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/1/Or.hdl
+/**
+ * Or gate:
+ * if (a or b) out = 1, else out = 0 
+ */
+
+ // Thinking about A or B = Not(Not(A) and Not(B))
+CHIP Or {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not (in=a, out=na); // A'
+    Not (in=b, out=nb); // B'
+    And (a=na, b=nb, out=naAndnb); //A' and B'
+    Not (in= naAndnb, out= out); //Not (A' and B')
+}

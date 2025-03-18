@@ -1,0 +1,100 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/2/ALU.hdl
+/**
+ * ALU (Arithmetic Logic Unit):
+ * Computes out = one of the following functions:
+ *                0, 1, -1,
+ *                x, y, !x, !y, -x, -y,
+ *                x + 1, y + 1, x - 1, y - 1,
+ *                x + y, x - y, y - x,
+ *                x & y, x | y
+ * on the 16-bit inputs x, y,
+ * according to the input bits zx, nx, zy, ny, f, no.
+ * In addition, computes the two output bits:
+ * if (out == 0) zr = 1, else zr = 0
+ * if (out < 0)  ng = 1, else ng = 0
+ */
+// Implementation: Manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) sets x = 0        // 16-bit constant
+// if (nx == 1) sets x = !x       // bitwise not
+// if (zy == 1) sets y = 0        // 16-bit constant
+// if (ny == 1) sets y = !y       // bitwise not
+// if (f == 1)  sets out = x + y  // integer 2's complement addition
+// if (f == 0)  sets out = x & y  // bitwise and
+// if (no == 1) sets out = !out   // bitwise not
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute (out = x + y) or (out = x & y)?
+        no; // negate the out output?
+    OUT 
+        out[16], // 16-bit output
+        zr,      // if (out == 0) equals 1, else 0
+        ng;      // if (out < 0)  equals 1, else 0
+
+    PARTS:
+    // - - - Processing x - - - 
+    // Process of zx
+    // If zx = 0 → xval1 = x (keep the original x).
+    // If zx = 1 → xval1 = 0000 0000 0000 0000(set x to zero).
+    Mux16(a=x, b=false, sel=zx, out=xval1);         
+    
+    // Process of nx
+    // Negate xval1, nx chooses xval or notxval as return 
+    Not16(in=xval1, out=notxval);
+    Mux16(a=xval1, b=notxval, sel=nx, out=xval);    
+    
+    // - - - Processing y - - -
+    // same as zx 
+    Mux16(a=y, b=false, sel=zy, out=yval1);         
+    
+    // same as nx
+    Not16(in=yval1, out=notyval);
+    Mux16(a=yval1, b=notyval, sel=ny, out=yval);    
+
+    // Compute ALU operation
+    // function x + y for bitwise operation
+    Add16(a=xval, b=yval, out=sum);
+    // funciton x and y for bitwise operation
+    And16(a=xval, b=yval, out=and);
+    
+    // Choose add or and with f
+    Mux16(a=and, b=sum, sel=f, out=out1);           
+    
+    // Process of no (Negate output)
+    // If no = 1, invert the result.
+    Not16(in=out1, out=notout);
+    
+    // Chose output normal or negation as a final output
+    //  outWrite is a final computed ALU output
+    // Mux16(a=out1, b=notout, sel=no, out=outWrite);      
+    Mux16(a=out1, b=notout, sel=no, out=out, out[15]=ng, out[0..7]=bit0to7, out[8..15]=bit8to15);
+
+    // - - - Pcoressing Flags - - - 
+    // Process of zr (Zero Flag)
+    // It checks entire 16bit is 0 or contains any 1s.
+    
+    // Or16Way.hdl
+    // Or16Way(in=out, out=outnonzero);
+    //  - - Inline Or16Way: Check if any bit in out[16] is 1 - -
+    Or8Way(in=bit0to7, out=Or1);
+    Or8Way(in=bit8to15, out=Or2);
+    Or(a=Or1, b=Or2, out=or16Bits);
+    
+    // Process of ng (Negative Flag)
+    // Checks if the most significant bit (MSB) is 1, meaning a negative value.
+    // IsNeg16(in=out, out=neg);
+    // Mux(a=false, b=true, sel=neg, out=ng);          
+    //  - - Inline IsNeg16: If MSB (out[15]) is 1, set ng=1 - - 
+    // If all bits in out[15] are 0, set zr = 1
+    Mux(a=true, b=false, sel=or16Bits, out=zr);   
+
+}
