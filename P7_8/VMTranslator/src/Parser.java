@@ -27,18 +27,22 @@ public class Parser {
     public String commandType() {
         String[] tokens = currentLine.split(" ");
         switch (tokens[0]) {
-            case "push":
-                return "C_PUSH";
-            case "pop":
-                return "C_POP";
+            case "push": return "C_PUSH";
+            case "pop": return "C_POP";
+            case "label": return "C_LABEL";
+            case "goto": return "C_GOTO";
+            case "if-goto": return "C_IF";
+            case "function": return "C_FUNCTION";
+            case "call": return "C_CALL";
+            case "return": return "C_RETURN";
             case "add": case "sub": case "neg":
             case "eq": case "gt": case "lt":
             case "and": case "or": case "not":
                 return "C_ARITHMETIC";
-            default:
-                return "C_UNKNOWN";
+            default: return "C_UNKNOWN";
         }
     }
+
 
     public String arg1() {
         String[] tokens = currentLine.split(" ");

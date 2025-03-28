@@ -27,12 +27,39 @@ public class Main {
                         codeWriter.writePushConstant(val);
                     }
                     break;
+
                 case "C_ARITHMETIC":
                     codeWriter.writeArithmetic(parser.currentCommand());
                     break;
+
+                case "C_LABEL":
+                    codeWriter.writeLabel(parser.arg1());
+                    break;
+
+                case "C_GOTO":
+                    codeWriter.writeGoto(parser.arg1());
+                    break;
+
+                case "C_IF":
+                    codeWriter.writeIf(parser.arg1());
+                    break;
+
+                case "C_FUNCTION":
+                    codeWriter.writeFunction(parser.arg1(), parser.arg2());
+                    break;
+
+                case "C_CALL":
+                    codeWriter.writeCall(parser.arg1(), parser.arg2());
+                    break;
+
+                case "C_RETURN":
+                    codeWriter.writeReturn();
+                    break;
+
                 default:
                     codeWriter.writeComment("Unsupported command");
             }
+
         }
 
         parser.close();

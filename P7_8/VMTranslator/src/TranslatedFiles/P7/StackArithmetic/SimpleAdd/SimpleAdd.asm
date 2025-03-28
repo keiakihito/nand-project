@@ -1,5 +1,3 @@
-// Translated from SimpleAdd.vm
-// push constant 7
 @7
 D=A
 @SP
